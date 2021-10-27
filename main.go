@@ -47,7 +47,7 @@ func main() {
 	signal.Notify(sigChan, os.Kill)
 
 	sig := <-sigChan
-	l.Println("Received terminate. Graceful shutdown", sig)
+	l.Println("Received terminate. Graceful shutdown.", sig)
 
 	tc, _ := context.WithTimeout(context.Background(), 30 * time.Second)
 
