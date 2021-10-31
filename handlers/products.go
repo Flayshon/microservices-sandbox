@@ -43,12 +43,13 @@ func (p *Products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			idString := g[0][1]
 			id, err := strconv.Atoi(idString)
 			if err != nil {
-				p.l.Println("Invalid URI unable to convert to numer", idString)
+				p.l.Println("Invalid URI unable to convert to number", idString)
 				http.Error(rw, "Invalid URI", http.StatusBadRequest)
 				return
 			}
 
 			p.updateProducts(id, rw, r)
+			rw.WriteHeader(http.StatusNoContent)
 		default:
 			rw.WriteHeader(http.StatusMethodNotAllowed)
 	}
