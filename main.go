@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flayshon/micro/handlers"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
@@ -17,12 +18,22 @@ func main() {
 	env.Parse()
 
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
-	hh := handlers.NewHello(l)
 	ph := handlers.NewProducts(l)
+	// hh := handlers.NewHello(l)
 
-	sm := http.NewServeMux()
-	sm.Handle("/hello", hh)
-	sm.Handle("/", ph)
+	sm := mux.NewRouter()
+
+	// sm.Handle("/hello", hh)
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/products", ph.GetProducts)
+
+	postRouter := sm.Methods(http.MethodPost).Subrouter()
+	postRouter.HandleFunc("/products", ph.AddProduct)
+	postRouter.Use(ph.MiddlewareValidateProduct)
+
+	putRouter := sm.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/products/{id:[0-9]+}", ph.UpdateProducts)
+	putRouter.Use(ph.MiddlewareValidateProduct)
 
 	s := &http.Server{
 		Addr: *bindAddress,
