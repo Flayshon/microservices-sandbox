@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"flayshon/micro/data"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -32,6 +33,7 @@ func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	prod := r.Context().Value(KeyProduct{}).(data.Product)
 
 	data.AddProduct(&prod)
+	rw.WriteHeader(http.StatusCreated)
 }
 
 func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
@@ -56,6 +58,8 @@ func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "Product not found", http.StatusInternalServerError)
 		return
 	}
+
+	rw.WriteHeader(http.StatusNoContent)
 }
 
 type KeyProduct struct{}
@@ -68,6 +72,13 @@ func (p Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 		if err != nil {
 			p.l.Println("[ERROR] deserializing product", err)
 			http.Error(rw, "Error reading product", http.StatusBadRequest)
+			return
+		}
+
+		err = prod.Validate()
+		if err != nil {
+			p.l.Println("[ERROR] validanting product", err)
+			http.Error(rw, fmt.Sprintf("Error validating product: %s", err), http.StatusUnprocessableEntity)
 			return
 		}
 
